@@ -22,12 +22,18 @@
 // might cause name collisions
 using namespace glm;
 using namespace std;
+using namespace glsl;
 
 // field of view
 GLfloat Billiard::fov= 45.0;
 GLfloat Billiard::cameraZ= 3;
 
 mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
+
+vec4 Billiard::lightPosition = vec4(3.0, 3.0, 3.0, 1.0);
+
+TriangleMesh Billiard::mesh;
+Shader Billiard::diffuseShader;
 
 LightSource Billiard::lightSource={
     // position
@@ -41,6 +47,10 @@ LightSource Billiard::lightSource={
 };
 
 void Billiard::init(){
+
+    mesh.load("meshes/cube.obj");
+
+    const std::string version = "#version 120\n";
   
   // set background color to black
   glClearColor(0.0,0.0,0.0,1.0);
@@ -52,6 +62,18 @@ void Billiard::init(){
 
   // enable antialiasing
   glEnable(GL_MULTISAMPLE);
+
+
+  diffuseShader.addVertexShader(version);
+  diffuseShader.loadVertexShader("shaders/diffuse.vert");
+  diffuseShader.compileVertexShader();
+  diffuseShader.addFragmentShader(version);
+  diffuseShader.loadFragmentShader("shaders/diffuse.frag");
+  diffuseShader.compileFragmentShader();
+  diffuseShader.bindVertexAttrib("position", TriangleMesh::attribPosition);
+  diffuseShader.bindVertexAttrib("normal", TriangleMesh::attribNormal);
+  diffuseShader.link();
+
 }
 
 // adjust to new window size
@@ -85,6 +107,13 @@ void Billiard::computeProjectionMatrix(void){
 void Billiard::display(void){
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  diffuseShader.bind();
+  diffuseShader.setUniform("transformation", projectionMatrix * viewMatrix * modelMatrix);
+  diffuseShader.setUniform("color", vec3(1, 1, 1));
+  diffuseShader.setUniform("lightPosition", inverse(modelMatrix) * lightPosition);
+  mesh.draw();
+  diffuseShader.unbind();
   
   // display back buffer
   window->swapBuffers();

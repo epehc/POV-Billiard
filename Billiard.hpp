@@ -25,6 +25,7 @@
 #include "TriangleMesh.hpp"
 #include "GLSL.hpp"
 
+
  OpenGLConfiguration config(glm::uvec2(2, 1),
 		      OpenGLConfiguration::Profile::COMPATIBILITY,
 		      (Window::DOUBLE | Window::DEPTH | Window::RGB | Window::MULTISAMPLE),
@@ -53,6 +54,7 @@ public:
   // keyboard callback
   static void keyPressed();
 
+
   // keyboard callback for special keys 
   static void specialKey();
     
@@ -79,8 +81,17 @@ private:
   static glm::mat4 viewMatrix;
   static glm::mat4 modelMatrix;
 
+  static glm::vec3 shift; // offset
+
+  static glm::vec4 lightPosition;
+
+  static TriangleMesh mesh;
+
+  static glsl::Shader diffuseShader;
+
   static LightSource lightSource;
   static Material material;
+
   
   struct Menu{
     enum Item{QUIT};
