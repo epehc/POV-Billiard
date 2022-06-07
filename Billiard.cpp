@@ -234,6 +234,8 @@ break;
 
 void Billiard::idle(){
 
+    cout << "Jose";
+
 static int time= INT_MAX;
 
 if(ani == true ) {
