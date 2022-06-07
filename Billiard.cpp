@@ -61,8 +61,7 @@ LightSource Billiard::lightSource={
 
 void Billiard::init(){
 
-mesh.load("meshes/cube.obj");
-mesh2.load("meshes/teapot.obj");
+mesh.load("meshes/pool-table.obj");
 
 const std::string version= "#version 120\n";
 
@@ -233,8 +232,6 @@ break;
 
 
 void Billiard::idle(){
-
-    cout << "Jose";
 
 static int time= INT_MAX;
 

@@ -128,8 +128,8 @@ protected:
   GLuint vbo[3];
   GLuint ibo;
 
-  std::vector<glm::vec2> texCoordIndices;
-  std::vector<glm::vec3> normalIndices;
+  std::vector<glm::uvec3> texCoordIndices;
+  std::vector<glm::uvec3> normalIndices;
   std::vector<Group> groups;
   std::vector<Material> materials;
 };
