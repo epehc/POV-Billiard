@@ -8,11 +8,18 @@
 
 #include "GLIncludes.hpp"
 
-#include <iostream> 
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <cassert>
 
 #include "Billiard.hpp"
 #include "Context.hpp"
 #include "Input.hpp"
+#include "Shaders.hpp"
+#include "LightSource.h"
+#include "Material.h"
+#include "Texture.hpp"
 
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
@@ -22,6 +29,7 @@
 // might cause name collisions
 using namespace glm;
 using namespace std;
+using namespace glsl;
 
 
 // field of view
@@ -37,8 +45,34 @@ static mat4 rotationMatrix = mat4(2);
 vec4 Billiard::lightPosition= vec4(3.0, 3.0, 3.0, 1.0);
 
 TriangleMesh Billiard::mesh;
-TriangleMesh Billiard::mesh2;
 glsl::Shader Billiard::diffuseShader;
+
+
+Window* Billiard::window;
+Mouse* Billiard::mouse;
+Keyboard* Billiard::keyboard;
+
+static float lightDistance = 8;
+
+// light source
+LightSource Billiard::lightSource{
+    // light position in world space
+    vec4(0, 0, lightDistance, 1),
+    vec4(1, 1, 1, 1),
+    vec4(1, 1, 1, 1),
+    vec4(1, 1, 1, 1),
+};
+//Material
+Material Billiard::material{
+    "material",
+    vec4(0.2, 0.2, 0.2, 1),
+    vec4(0.1, 1, 1, 1),
+    vec4(1, 1, 1, 1),
+    30,
+};
+
+
+Shader Billiard::phongShader;
 
 static bool ani = false;
 //.....................
@@ -47,21 +81,9 @@ static bool ani = false;
 //......................
 
 
-LightSource Billiard::lightSource={
-    // position
-
-  glm::vec4(0, 2, 3, 1),
-  // ambient color
-  glm::vec4(1.0, 1.0, 1.0, 1.0),
-  // diffuse color
-  glm::vec4(1.0, 1.0, 1.0, 1.0),
-  // specular color
-  glm::vec4(1.0, 1.0, 1.0, 1.0),
-};
-
 void Billiard::init(){
 
-mesh.load("meshes/pool-table.obj");
+mesh.load("meshes/pool-ball.obj"); 
 
 const std::string version= "#version 120\n";
 
@@ -78,7 +100,18 @@ diffuseShader.addVertexShader(version);
 
 
 //...............
-
+  phongShader.addVertexShader(version);
+  phongShader.addVertexShader(phongVertexShader);
+  phongShader.compileVertexShader();
+  phongShader.addFragmentShader(version);
+  phongShader.loadFragmentShader("LightSource.h");
+  phongShader.loadFragmentShader("Material.h");
+  phongShader.addFragmentShader(blinnPhongReflectionShader);
+  phongShader.addFragmentShader(phongFragmentShader);
+  phongShader.compileFragmentShader();
+  phongShader.bindVertexAttrib("position", TriangleMesh::attribPosition);
+  phongShader.bindVertexAttrib("normal", TriangleMesh::attribNormal);
+  phongShader.link();
 
 //.............
 
@@ -93,6 +126,7 @@ diffuseShader.addVertexShader(version);
 
   // enable antialiasing
   glEnable(GL_MULTISAMPLE);
+
 }
 
 // adjust to new window size
@@ -103,6 +137,8 @@ void Billiard::reshape(){
 
   computeViewMatrix();
   computeProjectionMatrix();
+
+ 
 }
 
 void Billiard::computeViewMatrix(void){
@@ -134,22 +170,28 @@ void Billiard::display(void){
  diffuseShader.setUniform("transformation", projectionMatrix*viewMatrix*modelMatrix);
  diffuseShader.setUniform("color", vec3(1,1,1));
  diffuseShader.setUniform("lightPosition", inverse(modelMatrix)*lightPosition);
- mesh.draw();
+ //mesh.draw();
  diffuseShader.unbind();
 
-mat4 modelMatrix = glm::translate(mat4(1),vec3(1,0,0));
- diffuseShader.bind();
- diffuseShader.setUniform("transformation", projectionMatrix*viewMatrix*modelMatrix);
- diffuseShader.setUniform("color", vec3(122,1,1));
- diffuseShader.setUniform("lightPosition", inverse(modelMatrix)*lightPosition);
- mesh2.draw();
- diffuseShader.unbind();
   
-
+ phongShader.bind();
+ phongShader.setUniform("modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
+ phongShader.setUniform("modelViewMatrix", viewMatrix * modelMatrix);
+ phongShader.setUniform("normalMatrix", mat3(transpose(inverse(viewMatrix * modelMatrix))));
+ phongShader.setUniform("lightSource.position", viewMatrix * lightSource.position);
+ phongShader.setUniform("lightSource.ambient", lightSource.ambient);
+ phongShader.setUniform("lightSource.diffuse", lightSource.diffuse);
+ phongShader.setUniform("lightSource.specular", lightSource.specular);
+ phongShader.setUniform("material.ambient", material.ambient);
+ phongShader.setUniform("material.diffuse", material.diffuse);
+ phongShader.setUniform("material.specular", material.specular);
+ phongShader.setUniform("material.shininess", material.shininess);
+ mesh.draw();
+ phongShader.unbind();
 
 //.............
 
-
+ //drawParameters();
 
 //.............
   

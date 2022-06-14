@@ -21,7 +21,6 @@
 
 #include "LightSource.h"
 #include "Material.h"
-
 #include "TriangleMesh.hpp"
 #include "GLSL.hpp"
 
@@ -62,38 +61,49 @@ public:
   // menu entries
   static std::vector< std::pair< int, std::string > >  menuEntries;
   
+  static Window* window;
+  static Mouse* mouse;
+  static Keyboard* keyboard;
+
+
+
 private:
 
- 
+	static void computeViewMatrix(void);
+	static void computeProjectionMatrix(void);
+
+	static void setLighting();
+	static void setMaterial();
+
+	static void drawPhongShading(void);
+
+	static glsl::Shader phongShader;
+
+	// field of view (in degrees)                                               
+	static GLfloat fov;
+
+	static float pan;
   
-  static void computeViewMatrix(void);
-  static void computeProjectionMatrix(void);
+	// camera position                                                           
+	static float cameraZ;
 
-  // field of view (in degrees)                                               
-  static GLfloat fov;
+	// near and far plane                                                        
+	static float nearPlane, farPlane;
 
-  static float pan;
+	static glm::mat4 projectionMatrix;
+	static glm::mat4 viewMatrix;
+	static glm::mat4 modelMatrix;
+	static glm::vec4 lightPosition; 
+
+	static TriangleMesh mesh;
+	static TriangleMesh mesh2;
+	static glsl::Shader diffuseShader;
+
+	static LightSource lightSource;
+	static Material material;
   
-  // camera position                                                           
-  static float cameraZ;
-
-  // near and far plane                                                        
-  static float nearPlane, farPlane;
-
-  static glm::mat4 projectionMatrix;
-  static glm::mat4 viewMatrix;
-  static glm::mat4 modelMatrix;
-  static glm::vec4 lightPosition; 
-
-  static TriangleMesh mesh;
-  static TriangleMesh mesh2;
-  static glsl::Shader diffuseShader;
-
-  static LightSource lightSource;
-  static Material material;
-  
-  struct Menu{
-    enum Item{QUIT};
-  };
+	struct Menu{
+	enum Item{QUIT};
+	};
 
 };
