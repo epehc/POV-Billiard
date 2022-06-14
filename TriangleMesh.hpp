@@ -132,4 +132,4 @@ protected:
   std::vector<glm::uvec3> normalIndices;
   std::vector<Group> groups;
   std::vector<Material> materials;
-};
+}; 
