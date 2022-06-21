@@ -19,7 +19,6 @@
 #include "Shaders.hpp"
 #include "LightSource.h"
 #include "Material.h"
-#include "Texture.hpp"
 
 #define GLM_FORCE_RADIANS
 #include "glm/glm.hpp"
@@ -36,13 +35,13 @@ using namespace glsl;
 GLfloat Billiard::fov= 45.0;
 GLfloat Billiard::cameraZ= 3;
 
-static vec3 cameraPos = vec3(0,0,3);
+static vec3 cameraPos = vec3(0,2,3);
 
 mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
 
 static mat4 rotationMatrix = mat4(2);
 
-vec4 Billiard::lightPosition= vec4(3.0, 3.0, 3.0, 1.0);
+vec4 Billiard::lightPosition= vec4(0, 3.0, 3.0, 1.0);
 
 TriangleMesh Billiard::mesh;
 glsl::Shader Billiard::diffuseShader;
@@ -52,24 +51,24 @@ Window* Billiard::window;
 Mouse* Billiard::mouse;
 Keyboard* Billiard::keyboard;
 
-static float lightDistance = 8;
+static float lightDistance = 10;
 
 // light source
 LightSource Billiard::lightSource{
     // light position in world space
-    vec4(0, 0, lightDistance, 1),
+    vec4(3, 8, lightDistance, 1),
     vec4(1, 1, 1, 1),
     vec4(1, 1, 1, 1),
     vec4(1, 1, 1, 1),
 };
 //Material
-Material Billiard::material{
-    "material",
-    vec4(0.2, 0.2, 0.2, 1),
-    vec4(0.1, 1, 1, 1),
-    vec4(1, 1, 1, 1),
-    30,
-};
+//Material Billiard::material{
+//    "material",
+//    vec4(0.2, 0.2, 0.2, 1),
+//    vec4(0.3, 0.3, 0.3, 1),
+//    vec4(1, 1, 1, 1),
+//    30,
+//};
 
 
 Shader Billiard::phongShader;
@@ -86,17 +85,6 @@ void Billiard::init(){
 mesh.load("meshes/pool-ball.obj"); 
 
 const std::string version= "#version 120\n";
-
-
-diffuseShader.addVertexShader(version);
-  diffuseShader.loadVertexShader("shaders/diffuse.vert");
-  diffuseShader.compileVertexShader();
-  diffuseShader.addFragmentShader(version);
-  diffuseShader.loadFragmentShader("shaders/diffuse.frag");
-  diffuseShader.compileFragmentShader();
-  diffuseShader.bindVertexAttrib("position", TriangleMesh::attribPosition);
-  diffuseShader.bindVertexAttrib("normal", TriangleMesh::attribNormal);
-  diffuseShader.link();
 
 
 //...............
@@ -166,28 +154,33 @@ void Billiard::display(void){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
  
- diffuseShader.bind();
- diffuseShader.setUniform("transformation", projectionMatrix*viewMatrix*modelMatrix);
- diffuseShader.setUniform("color", vec3(1,1,1));
- diffuseShader.setUniform("lightPosition", inverse(modelMatrix)*lightPosition);
- //mesh.draw();
- diffuseShader.unbind();
+  phongShader.bind();
+  phongShader.setUniform("modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
+  phongShader.setUniform("modelViewMatrix", viewMatrix * modelMatrix);
+  phongShader.setUniform("normalMatrix", mat3(transpose(inverse(viewMatrix * modelMatrix))));
+  phongShader.setUniform("lightSource.position", viewMatrix * lightSource.position);
+  phongShader.setUniform("lightSource.ambient", lightSource.ambient);
+  phongShader.setUniform("lightSource.diffuse", lightSource.diffuse);
+  phongShader.setUniform("lightSource.specular", lightSource.specular);
+  
+  vector<TriangleMesh::Group>::iterator group = mesh.begin();
+  while (group != mesh.end()) {
+      vector<TriangleMesh::Segment>::iterator segment = group->begin();
+      while (segment != group->end()) {
+          Material material = mesh.getMaterial(segment->material);
+          phongShader.setUniform("material.ambient", vec4(0.1, 0.1, 0.1, 1);
+          phongShader.setUniform("material.diffuse", material.diffuse);
+          phongShader.setUniform("material.specular", material.specular);
+          phongShader.setUniform("material.shininess", material.shininess);
+          segment->draw();
+          segment++;
+      }
+      group++;
+  }
+  
+  phongShader.unbind();
 
   
- phongShader.bind();
- phongShader.setUniform("modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
- phongShader.setUniform("modelViewMatrix", viewMatrix * modelMatrix);
- phongShader.setUniform("normalMatrix", mat3(transpose(inverse(viewMatrix * modelMatrix))));
- phongShader.setUniform("lightSource.position", viewMatrix * lightSource.position);
- phongShader.setUniform("lightSource.ambient", lightSource.ambient);
- phongShader.setUniform("lightSource.diffuse", lightSource.diffuse);
- phongShader.setUniform("lightSource.specular", lightSource.specular);
- phongShader.setUniform("material.ambient", material.ambient);
- phongShader.setUniform("material.diffuse", material.diffuse);
- phongShader.setUniform("material.specular", material.specular);
- phongShader.setUniform("material.shininess", material.shininess);
- mesh.draw();
- phongShader.unbind();
 
 //.............
 
