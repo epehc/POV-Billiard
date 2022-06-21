@@ -91,7 +91,7 @@ float Billiard::scaling = 1.0; // scale
 
 void Billiard::init(){
 
-mesh.load("meshes/pool-ball.obj"); 
+mesh.load("meshes/1.obj"); 
 
 const std::string version= "#version 120\n";
 
@@ -184,7 +184,7 @@ void Billiard::display(void){
       vector<TriangleMesh::Segment>::iterator segment = group->begin();
       while (segment != group->end()) {
           Material material = mesh.getMaterial(segment->material);
-          phongShader.setUniform("material.ambient", vec4(0.1, 0.1, 0.1, 1);
+          phongShader.setUniform("material.ambient", vec4(0.1, 0.1, 0.1, 1));
           phongShader.setUniform("material.diffuse", material.diffuse);
           phongShader.setUniform("material.specular", material.specular);
           phongShader.setUniform("material.shininess", material.shininess);
