@@ -21,7 +21,6 @@
 
 #include "LightSource.h"
 #include "Material.h"
-
 #include "TriangleMesh.hpp"
 #include "GLSL.hpp"
 
@@ -68,7 +67,14 @@ public:
   // menu entries
   static std::vector< std::pair< int, std::string > >  menuEntries;
   
+  static Window* window;
+  static Mouse* mouse;
+  static Keyboard* keyboard;
+
+
+
 private:
+
 
 	//reset transformations
 	static void reset(void);
@@ -81,28 +87,36 @@ private:
   static glm::vec3 shift; // offset
   static float scaling; // scale
   static float pan; 
+
+	static void setLighting();
+	static void setMaterial();
+
+	static void drawPhongShading(void);
+
+	static glsl::Shader phongShader;
+
   
-  // camera position                                                           
-  static float cameraZ;
+	// camera position                                                           
+	static float cameraZ;
 
-  // near and far plane                                                        
-  static float nearPlane, farPlane;
+	// near and far plane                                                        
+	static float nearPlane, farPlane;
 
-  static glm::mat4 projectionMatrix;
-  static glm::mat4 viewMatrix;
-  static glm::mat4 modelMatrix;
-  static glm::vec4 lightPosition; 
+	static glm::mat4 projectionMatrix;
+	static glm::mat4 viewMatrix;
+	static glm::mat4 modelMatrix;
+	static glm::vec4 lightPosition; 
 
-  static TriangleMesh mesh;
-  static TriangleMesh mesh2;
-  static glsl::Shader diffuseShader;
+	static TriangleMesh mesh;
+	static TriangleMesh mesh2;
+	static glsl::Shader diffuseShader;
 
-  static LightSource lightSource;
-  static Material material;
+	static LightSource lightSource;
+	/*static Material material;*/
   
-  struct Menu{
-    enum Item{QUIT};
-  };
+	struct Menu{
+	enum Item{QUIT};
+	};
 
   static enum Transformation {
 	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z

@@ -19,8 +19,12 @@
     <ClInclude Include="GLSL.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Keyboard.hpp" />
+    <ClInclude Include="LightSource.h" />
     <ClInclude Include="Log.hpp" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Mouse.hpp" />
+    <ClInclude Include="Shaders.hpp" />
+    <ClInclude Include="Texture.hpp" />
     <ClInclude Include="TriangleMesh.hpp" />
     <ClInclude Include="Window.hpp" />
   </ItemGroup>
@@ -41,6 +45,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="Keyboard.cpp" />
+    <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TriangleMesh.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
