@@ -100,7 +100,7 @@ private:
 	static glsl::Shader diffuseShader;
 
 	static LightSource lightSource;
-	static Material material;
+	/*static Material material;*/
   
 	struct Menu{
 	enum Item{QUIT};
