@@ -30,6 +30,10 @@ using namespace glm;
 using namespace std;
 using namespace glsl;
 
+static float xAngle = 0;
+static float yAngle = 0;
+static float zAngle = 0;
+static float radiant = 5.0f;
 
 // field of view
 GLfloat Billiard::fov= 45.0;
@@ -39,7 +43,7 @@ static vec3 cameraPos = vec3(0,2,3);
 
 mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
 
-static mat4 rotationMatrix = mat4(2);
+
 
 vec4 Billiard::lightPosition= vec4(0, 3.0, 3.0, 1.0);
 
@@ -74,6 +78,11 @@ LightSource Billiard::lightSource{
 Shader Billiard::phongShader;
 
 static bool ani = false;
+
+Billiard::Transformation Billiard::drag;
+static mat4 rotationMatrix = mat4(1);
+vec3 Billiard::shift = vec3(0); // offset
+float Billiard::scaling = 1.0; // scale
 //.....................
 
 
@@ -148,10 +157,17 @@ void Billiard::computeProjectionMatrix(void){
 }
 
 // this is where the drawing happens
-
+//MER
 void Billiard::display(void){
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+  mat4 modelMatrix = mat4(1);
+  modelMatrix = translate(modelMatrix, shift);
+  modelMatrix *= rotationMatrix;
+  modelMatrix = scale(modelMatrix, vec3(scaling));
+
 
  
   phongShader.bind();
@@ -188,11 +204,20 @@ void Billiard::display(void){
 
 //.............
   
+
   // display back buffer
   window->swapBuffers();
 }
 
+void Billiard::reset(void) {
+
+    rotationMatrix = mat4(1); // current rotation of object                                                                                                                                 
+    shift = vec3(0, 0, 0); // offset                                                                                                                                                    
+    scaling = 1;
+}
+
 // keyboard control
+//MER
 void Billiard::keyPressed(){
   
   // rotate selected node around 
@@ -221,42 +246,61 @@ case 'm':
 ani = true;
 
 break;
+
 case 'x':
-
-       cameraPos = mat3( glm::rotate(mat4(1),radians(10.0f),vec3(1,0,0)) ) * cameraPos;
-
-        computeViewMatrix();
-        window->redisplay();
-    
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(1.0, 0.0, 0.0)) * rotationMatrix;
+    window->redisplay();
+     
     break;
+
+case 'X':
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(-1.0, 0.0, 0.0)) * rotationMatrix;
+    window->redisplay();
+    break;
+
 case 'y':
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(0.0, 1.0, 0.0)) * rotationMatrix;
+    window->redisplay();
+    break;
 
-       cameraPos = mat3( glm::rotate(mat4(1),radians(10.0f),vec3(0,1,0)) ) * cameraPos;
+case 'Y':
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(0.0, -1.0, 0.0)) * rotationMatrix;
+    window->redisplay();
+    break;
 
-        computeViewMatrix();
-        window->redisplay();
-    
+case 'z':
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(0.0, 0.0, 1.0)) * rotationMatrix;
+    window->redisplay();
+    break;
+case 'Z':
+    rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(0.0, 0.0, -1.0)) * rotationMatrix;
+    window->redisplay();
     break;
 case 'w':
+        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,1));
+        computeViewMatrix();
+        window->redisplay();
+        break;
+case 's':
+        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,-1));
+        computeViewMatrix();
+        window->redisplay();
+        break;
+case 'd':
+        modelMatrix *= glm::translate(rotationMatrix, vec3(1,0,0));
+        computeViewMatrix();
+        window->redisplay();
+        break;
+case 'a':
         modelMatrix *= glm::translate(rotationMatrix,vec3(-1,0,0));
         computeViewMatrix();
         window->redisplay();
-break;
-case 's':
-        modelMatrix *= glm::translate(rotationMatrix,vec3(1,0,0));
-        computeViewMatrix();
-        window->redisplay();
-break;
-case 'd':
-        modelMatrix *= glm::translate(rotationMatrix,vec3(0,0,1));
-        computeViewMatrix();
-        window->redisplay();
-break;
-case 'a':
-        modelMatrix *= glm::translate(rotationMatrix,vec3(0,0,-1));
-        computeViewMatrix();
-        window->redisplay();
-break;
+        break;
+
+case 'r':
+    reset();
+    window->redisplay();
+    break;
 
 
   default:
@@ -264,6 +308,46 @@ break;
   }
 }
 
+void Billiard::mousePressed(void) {
+
+    if (keyboard->isActive(Keyboard::SHIFT))
+        drag = SHIFT_XY;
+    else if (keyboard->isActive(Keyboard::CTRL))
+        drag = SHIFT_Z;
+    else if (keyboard->isActive(Keyboard::ALT))
+        drag = SCALE;
+    else
+        drag = ROTATE;
+}
+
+
+
+void Billiard::mouseDragged(void) {
+
+    vec2 v = vec2(mouse->movement) / vec2(window->size());
+
+    switch (drag) {
+    case SCALE:
+        scaling += 0.1 * length(vec2(mouse->movement));
+        scaling = glm::clamp(scaling, 0.01f, 2.0f);
+        break;
+    case ROTATE:
+        if (length(v) == 0) break;
+        rotationMatrix =  rotate(mat4(1), radians(180 * length(v)), normalize(vec3(v.y, v.x, 0))) * rotationMatrix; // left multiply
+        break;
+    case SHIFT_XY:
+        shift.x += 3.3 * v.x;
+        shift.y -= 3.3 * v.y;
+        break;
+    case SHIFT_Z:
+        shift.z += -10.0 * sign(dot(v, vec2(-1, 1))) * length(v);
+        shift.z = clamp(shift.z, -25.0f, 2.0f);
+        break;
+    default:
+        break;
+    }
+    window->redisplay();
+}
 
 
 void Billiard::idle(){

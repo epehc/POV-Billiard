@@ -53,6 +53,12 @@ public:
   // keyboard callback
   static void keyPressed();
 
+  // mouse pressed
+  static void mousePressed(void);
+
+  // mouse dragged                                                                        
+  static void mouseDragged(void);
+
   // keyboard callback for special keys 
   static void specialKey();
 
@@ -69,8 +75,18 @@ public:
 
 private:
 
-	static void computeViewMatrix(void);
-	static void computeProjectionMatrix(void);
+
+	//reset transformations
+	static void reset(void);
+
+  static void computeViewMatrix(void);
+  static void computeProjectionMatrix(void);
+
+  // field of view (in degrees)                                               
+  static GLfloat fov; //field of view
+  static glm::vec3 shift; // offset
+  static float scaling; // scale
+  static float pan; 
 
 	static void setLighting();
 	static void setMaterial();
@@ -79,10 +95,6 @@ private:
 
 	static glsl::Shader phongShader;
 
-	// field of view (in degrees)                                               
-	static GLfloat fov;
-
-	static float pan;
   
 	// camera position                                                           
 	static float cameraZ;
@@ -105,5 +117,9 @@ private:
 	struct Menu{
 	enum Item{QUIT};
 	};
+
+  static enum Transformation {
+	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z
+  } drag;
 
 };
