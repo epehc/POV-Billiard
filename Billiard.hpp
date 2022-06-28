@@ -15,7 +15,7 @@
 #include <utility>
 
 #include "glm/glm.hpp"
-
+#include "glm/gtx/exterior_product.hpp"
 #include "Context.hpp"
 #include "Application.hpp"
 
@@ -112,7 +112,7 @@ private:
 	static glsl::Shader diffuseShader;
 
 	static LightSource lightSource;
-	/*static Material material;*/
+	static Material material;
   
 	struct Menu{
 	enum Item{QUIT};
@@ -121,5 +121,52 @@ private:
   static enum Transformation {
 	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z
   } drag;
+
+  class Ball {
+
+
+
+  public:
+
+	  Ball(glm::vec3 pos) {
+		  ballPosition = pos;
+
+	  }
+
+	  void load(std::string modelName) {
+		  mesh.load(modelName);
+	  }
+
+	  glm::mat4 rotateMatrix;
+	  glm::vec3 ballPosition;
+	  float velocity;
+	  glm::vec2 direction;
+	  glm::vec3 axis;
+
+	  TriangleMesh mesh;
+
+	  void push(glm::vec2 dir, float v) {
+		  velocity = v;
+		  direction = dir;
+
+	  }
+
+	  void roll() {
+		  if (velocity == 0) {
+			  return;
+		  }
+		  //position += velocity*direction;
+		  velocity--;
+
+	  }
+
+	  void print() {
+
+		  mesh.draw();
+
+	  }
+
+  };
+  static Ball b1;
 
 };

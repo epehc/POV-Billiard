@@ -91,7 +91,7 @@ float Billiard::scaling = 1.0; // scale
 
 void Billiard::init(){
 
-mesh.load("meshes/1.obj"); 
+mesh.load("meshes/2.obj"); 
 
 const std::string version= "#version 120\n";
 
