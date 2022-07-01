@@ -15,7 +15,10 @@
 #include <utility>
 
 #include "glm/glm.hpp"
+
 #include "glm/gtx/exterior_product.hpp"
+#include "glm/ext/matrix_transform.hpp"
+
 #include "Context.hpp"
 #include "Application.hpp"
 
@@ -37,6 +40,7 @@ class Billiard : public OpenGLApplication<config>{
 
 public:
 
+	static int size;
   
   // initialization
   static void init();
@@ -71,7 +75,7 @@ public:
   static Mouse* mouse;
   static Keyboard* keyboard;
 
-
+  
 
 private:
 
@@ -107,8 +111,8 @@ private:
 	static glm::mat4 modelMatrix;
 	static glm::vec4 lightPosition; 
 
-	static TriangleMesh mesh;
-	static TriangleMesh mesh2;
+	static TriangleMesh table;
+
 	static glsl::Shader diffuseShader;
 
 	static LightSource lightSource;
@@ -122,9 +126,7 @@ private:
 	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z
   } drag;
 
-  class Ball {
-
-
+public: class Ball {
 
   public:
 
@@ -137,7 +139,7 @@ private:
 		  mesh.load(modelName);
 	  }
 
-	  glm::mat4 rotateMatrix;
+	  glm::mat4 rotateMatrix = glm::mat4(1);
 	  glm::vec3 ballPosition;
 	  float velocity;
 	  glm::vec2 direction;
@@ -148,25 +150,66 @@ private:
 	  void push(glm::vec2 dir, float v) {
 		  velocity = v;
 		  direction = dir;
+		  axis = glm::vec3(-dir.y, 0, dir.x);
+
 
 	  }
 
 	  void roll() {
-		  if (velocity == 0) {
+		  if (velocity < 0) {
 			  return;
 		  }
-		  //position += velocity*direction;
-		  velocity--;
+
+		  rotateMatrix = glm::rotate(rotateMatrix, velocity, axis);
+		  ballPosition += velocity * glm::vec3(direction.x, 0, direction.y);
+		  velocity -= 0.5;
+
 
 	  }
 
-	  void print() {
+	  void print(glm::mat4 modelMatrix) {
+		  
+		  modelMatrix = translate(modelMatrix, ballPosition);
 
-		  mesh.draw();
+		  modelMatrix *= rotateMatrix;
+
+		  modelMatrix = glm::scale(modelMatrix, glm::vec3(0.0275));
+
+
+		  phongShader.bind();
+		  phongShader.setUniform("modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
+		  phongShader.setUniform("modelViewMatrix", viewMatrix * modelMatrix);
+		  phongShader.setUniform("normalMatrix", glm::mat3(transpose(inverse(viewMatrix * modelMatrix))));
+		  phongShader.setUniform("lightSource.position", viewMatrix * lightSource.position);
+		  phongShader.setUniform("lightSource.ambient", lightSource.ambient);
+		  phongShader.setUniform("lightSource.diffuse", lightSource.diffuse);
+		  phongShader.setUniform("lightSource.specular", lightSource.specular);
+
+		  std::vector<TriangleMesh::Group>::iterator group = mesh.begin();
+		  while (group != mesh.end()) {
+			  std::vector<TriangleMesh::Segment>::iterator segment = group->begin();
+			  while (segment != group->end()) {
+				  Material material = mesh.getMaterial(segment->material);
+				  phongShader.setUniform("material.ambient", glm::vec4(0.1, 0.1, 0.1, 1));
+				  phongShader.setUniform("material.diffuse", material.diffuse);
+				  phongShader.setUniform("material.specular", material.specular);
+				  phongShader.setUniform("material.shininess", material.shininess);
+				  segment->draw();
+				  segment++;
+			  }
+			  group++;
+		  }
+		  //
+		  phongShader.unbind();
 
 	  }
 
   };
-  static Ball b1;
+  
+	  static Ball white;
+	  static Ball b1;
+	  static Ball b2;
+
+	  static Ball balls[];
 
 };
