@@ -51,7 +51,22 @@ mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
 
 vec4 Billiard::lightPosition= vec4(0, 3.0, 3.0, 1.0);
 
-TriangleMesh Billiard::mesh;
+TriangleMesh Billiard::table;
+
+
+Billiard::Ball Billiard::balls[] = {                                                        Billiard::Ball(vec3(-0.5, 0.353, 0)) ,
+                                                                                            Billiard::Ball(vec3(0.35, 0.353, 0)), 
+                                                                            Billiard::Ball(vec3(0.4, 0.353, -0.025)), Billiard::Ball(vec3(0.4, 0.353, 0.025)),
+                                                                Billiard::Ball(vec3(0.45, 0.353, -0.05)), Billiard::Ball(vec3(0.5, 0.353, -0.025)),  Billiard::Ball(vec3(0.45, 0.353, 0.05)),
+                                                    Billiard::Ball(vec3(0.5, 0.353, -0.075)), Billiard::Ball(vec3(0.45, 0.353, 0)), Billiard::Ball(vec3(0.5, 0.353, 0.025)), Billiard::Ball(vec3(0.5, 0.353, 0.075)),
+                                     Billiard::Ball(vec3(0.55, 0.353, -0.1)), Billiard::Ball(vec3(0.55, 0.353, -0.05)), Billiard::Ball(vec3(0.55, 0.353, 0)), Billiard::Ball(vec3(0.55, 0.353, 0.05)), Billiard::Ball(vec3(0.55, 0.353, 0.1)) };
+int Billiard::size = sizeof(balls) / sizeof(balls[0]);
+
+
+//Billiard::Ball Billiard::white(vec3(-0.5, 0.353, 0));
+//Billiard::Ball Billiard::b1(vec3(0.5, 0.353, 0));
+//Billiard::Ball Billiard::b2(vec3(0.55, 0.353, 0));
+
 glsl::Shader Billiard::diffuseShader;
 
 
@@ -98,14 +113,22 @@ Billiard::Ball Billiard::ball(vec3(0));
 
 void Billiard::init(){
 
-    //mesh.load("meshes/pool-table.obj");
-    ball.load("meshes/13.obj");
+    //load the table mesh
+  table.load("meshes/pool-table.obj"); 
 
-    /*
-  for (int i = 0; i < sizeof(balls); i++) {
+  //load the white ball mesh
+  balls[0].load("meshes/white.obj");
+
+  //load every other ball
+  for (int i = 1; i < size; i++) {
+      cout << i << endl;
       balls[i].load("meshes/" + to_string(i) + ".obj");
   }
-  */
+  
+  //white.load("meshes/white.obj");
+  //b1.load("meshes/" + to_string(1) + ".obj");
+  //b2.load("meshes/2.obj");
+
 
 const std::string version= "#version 120\n";
 
@@ -185,7 +208,7 @@ void Billiard::display(void){
   modelMatrix *= rotationMatrix;
   modelMatrix = scale(modelMatrix, vec3(scaling));
 
- 
+  //render the table mesh using Phong Shaders
   phongShader.bind();
   phongShader.setUniform("modelViewProjectionMatrix", projectionMatrix * viewMatrix * modelMatrix);
   phongShader.setUniform("modelViewMatrix", viewMatrix * modelMatrix);
@@ -194,12 +217,12 @@ void Billiard::display(void){
   phongShader.setUniform("lightSource.ambient", lightSource.ambient);
   phongShader.setUniform("lightSource.diffuse", lightSource.diffuse);
   phongShader.setUniform("lightSource.specular", lightSource.specular);
-  
-  vector<TriangleMesh::Group>::iterator group = mesh.begin();
-  while (group != mesh.end()) {
+
+  vector<TriangleMesh::Group>::iterator group = table.begin();
+  while (group != table.end()) {
       vector<TriangleMesh::Segment>::iterator segment = group->begin();
       while (segment != group->end()) {
-          Material material = mesh.getMaterial(segment->material);
+          Material material = table.getMaterial(segment->material);
           phongShader.setUniform("material.ambient", vec4(0.1, 0.1, 0.1, 1));
           phongShader.setUniform("material.diffuse", material.diffuse);
           phongShader.setUniform("material.specular", material.specular);
@@ -209,10 +232,19 @@ void Billiard::display(void){
       }
       group++;
   }
-  
+
   phongShader.unbind();
 
-  
+
+  for (int i = 0; i < size; i++) {
+      balls[i].print(modelMatrix);
+  }
+
+  //white.print(modelMatrix);
+  //b1.print(modelMatrix);
+  //b2.print(modelMatrix);
+
+ 
 
 //.............
 
