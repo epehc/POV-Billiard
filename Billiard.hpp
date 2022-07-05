@@ -118,6 +118,7 @@ private:
 	static LightSource lightSource;
 	static Material material;
   
+
 	struct Menu{
 	enum Item{QUIT};
 	};
@@ -151,7 +152,6 @@ public: class Ball {
 		  velocity = v;
 		  direction = dir;
 		  axis = glm::vec3(-dir.y, 0, dir.x);
-
 
 	  }
 
@@ -211,5 +211,4 @@ public: class Ball {
 	  static Ball b2;
 
 	  static Ball balls[];
-
 };

@@ -34,12 +34,16 @@ static float xAngle = 0;
 static float yAngle = 0;
 static float zAngle = 0;
 static float radiant = 5.0f;
+static float radiantY = 90.0f;
+static float radiantX = -10.0f;
+static float cameraPosY = 1.4348907f;
+static float cameraPosZ = 1.4348907f;
 
 // field of view
 GLfloat Billiard::fov= 45.0;
 GLfloat Billiard::cameraZ= 3;
 
-static vec3 cameraPos = vec3(0,2,3);
+static vec3 cameraPos = vec3(0, cameraPosY, cameraPosZ);
 
 mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
 
@@ -100,12 +104,14 @@ vec3 Billiard::shift = vec3(0); // offset
 float Billiard::scaling = 1.0; // scale
 //.....................
 
+//Billiard::Ball Billiard::balls[16];
 
 //......................
 
+Billiard::Ball Billiard::ball(vec3(0));
+
 
 void Billiard::init(){
-
 
     //load the table mesh
   table.load("meshes/pool-table.obj"); 
@@ -123,7 +129,6 @@ void Billiard::init(){
   //b1.load("meshes/" + to_string(1) + ".obj");
   //b2.load("meshes/2.obj");
 
-  
 
 const std::string version= "#version 120\n";
 
@@ -155,6 +160,9 @@ const std::string version= "#version 120\n";
 
   // enable antialiasing
   glEnable(GL_MULTISAMPLE);
+
+  rotationMatrix = glm::rotate(mat4(1), radians(radiantY), vec3(0.0, -1.0, 0.0)) * rotationMatrix;
+  rotationMatrix = glm::rotate(mat4(1), radians(radiantX), vec3(1.0, 0.0, 0.0)) * rotationMatrix;
 
 }
 
@@ -199,7 +207,6 @@ void Billiard::display(void){
   modelMatrix = translate(modelMatrix, shift);
   modelMatrix *= rotationMatrix;
   modelMatrix = scale(modelMatrix, vec3(scaling));
-
 
   //render the table mesh using Phong Shaders
   phongShader.bind();
@@ -317,26 +324,27 @@ case 'Z':
     rotationMatrix = glm::rotate(mat4(1), radians(radiant), vec3(0.0, 0.0, -1.0)) * rotationMatrix;
     window->redisplay();
     break;
-case 'w':
-        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,1));
-        computeViewMatrix();
-        window->redisplay();
-        break;
-case 's':
-        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,-1));
-        computeViewMatrix();
-        window->redisplay();
-        break;
-case 'd':
-        modelMatrix *= glm::translate(rotationMatrix, vec3(1,0,0));
-        computeViewMatrix();
-        window->redisplay();
-        break;
-case 'a':
-        modelMatrix *= glm::translate(rotationMatrix,vec3(-1,0,0));
-        computeViewMatrix();
-        window->redisplay();
-        break;
+
+//case 'w':
+//        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,1));
+//        computeViewMatrix();
+//        window->redisplay();
+//        break;
+//case 's':
+//        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,-1));
+//        computeViewMatrix();
+//        window->redisplay();
+//        break;
+//case 'd':
+//        modelMatrix *= glm::translate(rotationMatrix, vec3(1,0,0));
+//        computeViewMatrix();
+//        window->redisplay();
+//        break;
+//case 'a':
+//        modelMatrix *= glm::translate(rotationMatrix,vec3(-1,0,0));
+//        computeViewMatrix();
+//        window->redisplay();
+//        break;
 
 case 'r':
     reset();
@@ -366,6 +374,7 @@ void Billiard::mousePressed(void) {
 void Billiard::mouseDragged(void) {
 
     vec2 v = vec2(mouse->movement) / vec2(window->size());
+    vec2 pos = vec2(mouse->position);
 
     switch (drag) {
     case SCALE:
@@ -379,6 +388,7 @@ void Billiard::mouseDragged(void) {
     case SHIFT_XY:
         shift.x += 3.3 * v.x;
         shift.y -= 3.3 * v.y;
+        //std::cout << pos.x << " " << pos.y << endl;
         break;
     case SHIFT_Z:
         shift.z += -10.0 * sign(dot(v, vec2(-1, 1))) * length(v);
