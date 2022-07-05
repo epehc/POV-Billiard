@@ -124,7 +124,7 @@ private:
 	};
 
   static enum Transformation {
-	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z
+	  ROTATE, SHIFT_XY
   } drag;
 
 public: class Ball {

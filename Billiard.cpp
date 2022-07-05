@@ -188,7 +188,7 @@ void Billiard::computeProjectionMatrix(void){
   float aspect= (float) window->width() / (float) window->height();
   
   // compute near and far plane
-  float nearPlane=cameraZ/10.0f; 
+  float nearPlane=cameraZ/25.0f; 
   float farPlane= cameraZ*10.0f;
   
   projectionMatrix= glm::perspective(radians(fov), aspect, nearPlane, farPlane);
@@ -363,10 +363,6 @@ void Billiard::mousePressed(void) {
 
     if (keyboard->isActive(Keyboard::SHIFT))
         drag = SHIFT_XY;
-    else if (keyboard->isActive(Keyboard::CTRL))
-        drag = SHIFT_Z;
-    else if (keyboard->isActive(Keyboard::ALT))
-        drag = SCALE;
     else
         drag = ROTATE;
 }
@@ -379,10 +375,6 @@ void Billiard::mouseDragged(void) {
     vec2 pos = vec2(mouse->position);
 
     switch (drag) {
-    case SCALE:
-        scaling += 0.1 * length(vec2(mouse->movement));
-        scaling = glm::clamp(scaling, 0.01f, 2.0f);
-        break;
     case ROTATE:
         if (length(v) == 0) break;
         rotationMatrix =  rotate(mat4(1), radians(180 * length(v)), normalize(vec3(v.y, v.x, 0))) * rotationMatrix; // left multiply
@@ -391,10 +383,6 @@ void Billiard::mouseDragged(void) {
         shift.x += 3.3 * v.x;
         shift.y -= 3.3 * v.y;
         //std::cout << pos.x << " " << pos.y << endl;
-        break;
-    case SHIFT_Z:
-        shift.z += -10.0 * sign(dot(v, vec2(-1, 1))) * length(v);
-        shift.z = clamp(shift.z, -25.0f, 2.0f);
         break;
     default:
         break;
