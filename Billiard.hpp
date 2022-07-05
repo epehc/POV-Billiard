@@ -66,6 +66,8 @@ public:
   // keyboard callback for special keys 
   static void specialKey();
 
+  static void keyReleased();
+
   static void idle();
     
   // menu entries
@@ -152,7 +154,7 @@ public: class Ball {
 	  void push(glm::vec2 dir, float v) {
 		  velocity = v;
 		  direction = dir;
-		  axis = glm::vec3(-dir.y, 0, dir.x);
+		  axis = glm::vec3(dir.y, 0, -dir.x);
 
 	  }
 
@@ -161,9 +163,9 @@ public: class Ball {
 			  return;
 		  }
 
-		  rotateMatrix = glm::rotate(rotateMatrix, velocity, axis);
+		  rotateMatrix = glm::rotate(rotateMatrix, glm::radians(1000.0f * velocity), axis);
 		  ballPosition += velocity * glm::vec3(direction.x, 0, direction.y);
-		  velocity -= 0.5;
+		  velocity -= 0.00001;
 
 
 	  }
@@ -204,7 +206,7 @@ public: class Ball {
 			  }
 			  group++;
 		  }
-		  //
+		  
 		  phongShader.unbind();
 
 	  }

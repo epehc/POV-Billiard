@@ -97,6 +97,7 @@ LightSource Billiard::lightSource{
 Shader Billiard::phongShader;
 
 static bool ani = false;
+static bool rol = false;
 
 Billiard::Transformation Billiard::drag;
 static mat4 rotationMatrix = mat4(1);
@@ -188,7 +189,7 @@ void Billiard::computeProjectionMatrix(void){
   float aspect= (float) window->width() / (float) window->height();
   
   // compute near and far plane
-  float nearPlane=cameraZ/10.0f; 
+  float nearPlane=cameraZ/25.0f; 
   float farPlane= cameraZ*10.0f;
   
   projectionMatrix= glm::perspective(radians(fov), aspect, nearPlane, farPlane);
@@ -359,6 +360,24 @@ case 'r':
   }
 }
 
+void Billiard::keyReleased(void) {
+    cout << " released" << endl;
+    switch (keyboard->key) {
+    case Keyboard::SPACE:
+        rol = true;
+
+        balls[1].push(vec2(-1, 0), 0.01);
+
+        window->redisplay();
+        break;
+
+    default:
+        break;
+
+    }
+
+}
+
 void Billiard::mousePressed(void) {
 
     if (keyboard->isActive(Keyboard::SHIFT))
@@ -403,21 +422,29 @@ void Billiard::mouseDragged(void) {
 }
 
 
-void Billiard::idle(){
+void Billiard::idle() {
 
-static int time= INT_MAX;
+    static int time = INT_MAX;
 
-if(ani == true ) {
-modelMatrix *= glm::rotate(mat4(1),radians(10.0f),vec3(0,1,0)) ;
-window->redisplay();
-}
+    if (ani == true) {
+        modelMatrix *= glm::rotate(mat4(1), radians(10.0f), vec3(0, 1, 0));
+        window->redisplay();
+    }
 
 
-if(time++ > 25){
-ani = false;
-time =0;
-}
+    if (time++ > 25) {
+        ani = false;
+        time = 0;
+    }
 
+    if (rol == true) {
+        balls[1].roll();
+        window->redisplay();
+    }
+    if (time++ > 25) {
+        rol = false;
+        time = 0;
+    }
 
 
 }
