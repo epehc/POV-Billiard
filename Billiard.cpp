@@ -34,8 +34,8 @@ static float xAngle = 0;
 static float yAngle = 0;
 static float zAngle = 0;
 static float radiant = 5.0f;
-static float radiantY = 90.0f;
-static float radiantX = -10.0f;
+static float radiantY = 270.0f;
+static float radiantX = 5.0f;
 static float cameraPosY = 1.4348907f;
 static float cameraPosZ = 1.4348907f;
 
@@ -107,8 +107,6 @@ float Billiard::scaling = 1.0; // scale
 //Billiard::Ball Billiard::balls[16];
 
 //......................
-
-Billiard::Ball Billiard::ball(vec3(0));
 
 
 void Billiard::init(){
@@ -262,6 +260,10 @@ void Billiard::reset(void) {
     rotationMatrix = mat4(1); // current rotation of object                                                                                                                                 
     shift = vec3(0, 0, 0); // offset                                                                                                                                                    
     scaling = 1;
+
+    for (Ball ball : balls) {
+        ball.resetBallPosition();
+    }
 }
 
 // keyboard control

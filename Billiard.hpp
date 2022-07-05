@@ -133,7 +133,7 @@ public: class Ball {
 
 	  Ball(glm::vec3 pos) {
 		  ballPosition = pos;
-
+		  OGballPos = pos;
 	  }
 
 	  void load(std::string modelName) {
@@ -142,6 +142,7 @@ public: class Ball {
 
 	  glm::mat4 rotateMatrix = glm::mat4(1);
 	  glm::vec3 ballPosition;
+	  glm::vec3 OGballPos;
 	  float velocity;
 	  glm::vec2 direction;
 	  glm::vec3 axis;
@@ -165,6 +166,10 @@ public: class Ball {
 		  velocity -= 0.5;
 
 
+	  }
+
+	  void resetBallPosition() {
+		  ballPosition = OGballPos;
 	  }
 
 	  void print(glm::mat4 modelMatrix) {
