@@ -114,6 +114,7 @@ private:
 	static LightSource lightSource;
 	static Material material;
   
+
 	struct Menu{
 	enum Item{QUIT};
 	};
@@ -145,9 +146,9 @@ private:
 
 	  TriangleMesh mesh;
 
-	  void push(glm::vec2 dir, float v) {
-		  velocity = v;
-		  direction = dir;
+	  static void push(glm::vec2 posA, glm::vec2 posB) {
+		  //velocity = v;
+		  //direction = dir;
 
 	  }
 
@@ -167,6 +168,8 @@ private:
 	  }
 
   };
-  static Ball b1;
+  static Ball balls[];
+  static Ball ball;
+
 
 };
