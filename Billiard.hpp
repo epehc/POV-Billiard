@@ -26,6 +26,9 @@
 #include "Material.h"
 #include "TriangleMesh.hpp"
 #include "GLSL.hpp"
+#include<ctime>
+
+using namespace std;
 
  OpenGLConfiguration config(glm::uvec2(2, 1),
 		      OpenGLConfiguration::Profile::COMPATIBILITY,
@@ -60,13 +63,16 @@ public:
   // mouse pressed
   static void mousePressed(void);
 
+  //mouse Released
+  static void mouseReleased(void);
+
   // mouse dragged                                                                        
   static void mouseDragged(void);
 
   // keyboard callback for special keys 
   static void specialKey();
 
-  static void keyReleased();
+  //static void keyReleased();
 
   static void idle();
     
@@ -150,6 +156,10 @@ public: class Ball {
 	  glm::vec3 axis;
 
 	  TriangleMesh mesh;
+	 
+	  bool isRolling() {
+		  return velocity > 0;
+	  }
 
 	  void push(glm::vec2 dir, float v) {
 		  velocity = v;
@@ -159,14 +169,14 @@ public: class Ball {
 	  }
 
 	  void roll() {
+		  
 		  if (velocity < 0) {
 			  return;
 		  }
 
 		  rotateMatrix = glm::rotate(rotateMatrix, glm::radians(1000.0f * velocity), axis);
 		  ballPosition += velocity * glm::vec3(direction.x, 0, direction.y);
-		  velocity -= 0.00001;
-
+		  velocity -= 0.0001;
 
 	  }
 

@@ -43,6 +43,8 @@ static float cameraPosZ = 1.4348907f;
 GLfloat Billiard::fov= 45.0;
 GLfloat Billiard::cameraZ= 3;
 
+static clock_t now = clock();
+
 static vec3 cameraPos = vec3(0, cameraPosY, cameraPosZ);
 
 mat4 Billiard::projectionMatrix, Billiard::viewMatrix, Billiard::modelMatrix(1);
@@ -53,8 +55,7 @@ vec4 Billiard::lightPosition= vec4(0, 3.0, 3.0, 1.0);
 
 TriangleMesh Billiard::table;
 
-
-Billiard::Ball Billiard::balls[] = {                                                        Billiard::Ball(vec3(-0.5, 0.353, 0)) ,
+Billiard::Ball Billiard::balls[] = {                                                        Billiard::Ball(vec3(-0.5 , 0.353, 0 )) ,
                                                                                             Billiard::Ball(vec3(0.35, 0.353, 0)), 
                                                                             Billiard::Ball(vec3(0.4, 0.353, -0.025)), Billiard::Ball(vec3(0.4, 0.353, 0.025)),
                                                                 Billiard::Ball(vec3(0.45, 0.353, -0.05)), Billiard::Ball(vec3(0.5, 0.353, -0.025)),  Billiard::Ball(vec3(0.45, 0.353, 0.05)),
@@ -108,7 +109,46 @@ float Billiard::scaling = 1.0; // scale
 //Billiard::Ball Billiard::balls[16];
 
 //......................
+float perpDotProduct(vec2 v1, vec2 v2) {
+    return v1.x * v2.y - v1.y + v2.x;
+}
 
+float dotProduct(vec2 v1, vec2 v2) {
+    return v1.x * v2.x + v1.y + v2.y;
+}
+
+
+//bool isProjectedPointOnLineSegment(vec2 p, vec2 v1, vec2 v2) {
+//    //get dotProduct |e1| |e2|
+//    vec2 e1 = vec2(v2.x - v1.x, v2.y - v1.y);
+//    float rectArea = perpDotProduct(e1, e1);
+//
+//    vec2 e2 = vec2(p.x - v1.x, p.y - v1.y);
+//
+//    double val = perpDotProduct(e1, e2);
+//    return (val > 0 && val < rectArea);
+//
+//}
+//
+
+vec2 getProjectedPointOnLine(vec2 p, vec2 v1, vec2 v2) {
+    vec2 e1 = vec2(v2.x - v1.x, v2.y - v1.y);
+    vec2 e2 = vec2(p.x - v1.x, p.y - v1.y);
+
+    double dp = dotProduct(e1, e2);
+
+    //get length of vectors
+    double lenLineE1 = sqrt(e1.x * e1.x + e1.y * e1.y);
+    double lenLineE2 = sqrt(e2.x * e2.x + e2.y * e2.y);
+    double cos = dp / (lenLineE1 * lenLineE2);
+
+    // length of v1P'
+    double projLenOfLine = cos * lenLineE2;
+    vec2 result = vec2((int)(v1.x + (projLenOfLine * e1.x) / lenLineE1),
+        (int)(v1.y + (projLenOfLine * e1.y) / lenLineE1));
+    cout << "collision" << endl;
+    return result;
+}
 
 void Billiard::init(){
 
@@ -190,7 +230,7 @@ void Billiard::computeProjectionMatrix(void){
   
   // compute near and far plane
   float nearPlane=cameraZ/25.0f; 
-  float farPlane= cameraZ*10.0f;
+  float farPlane= cameraZ*10.0f ;
   
   projectionMatrix= glm::perspective(radians(fov), aspect, nearPlane, farPlane);
 }
@@ -262,8 +302,8 @@ void Billiard::reset(void) {
     shift = vec3(0, 0, 0); // offset                                                                                                                                                    
     scaling = 1;
 
-    for (Ball ball : balls) {
-        ball.resetBallPosition();
+    for (int i = 0; i < size; i++) {
+        balls[i].resetBallPosition();
     }
 }
 
@@ -360,35 +400,34 @@ case 'r':
   }
 }
 
-void Billiard::keyReleased(void) {
-    cout << " released" << endl;
-    switch (keyboard->key) {
-    case Keyboard::SPACE:
-        rol = true;
+void Billiard::mouseReleased(void) {
 
-        balls[1].push(vec2(-1, 0), 0.01);
+    if (keyboard->isActive(Keyboard::SHIFT)) {
+        //cout << " released" << endl;
 
+        clock() - now;
+        long click = clock() - now;
+        float erg = (click * 0.0000234);
+        cout << erg << endl;
+        vec3 temp = vec3(balls[0].ballPosition - vec3(rotationMatrix * vec4(cameraPos, 1)));
+        balls[0].push(vec2(-temp.x, temp.z), erg);
         window->redisplay();
-        break;
-
-    default:
-        break;
-
     }
 
 }
 
 void Billiard::mousePressed(void) {
 
-    if (keyboard->isActive(Keyboard::SHIFT))
-        drag = SHIFT_XY;
-    else if (keyboard->isActive(Keyboard::CTRL))
+    now = clock();
+
+    if (keyboard->isActive(Keyboard::CTRL))
         drag = SHIFT_Z;
     else if (keyboard->isActive(Keyboard::ALT))
         drag = SCALE;
     else
         drag = ROTATE;
 }
+
 
 
 
@@ -423,7 +462,6 @@ void Billiard::mouseDragged(void) {
 
 
 void Billiard::idle() {
-
     static int time = INT_MAX;
 
     if (ani == true) {
@@ -437,14 +475,14 @@ void Billiard::idle() {
         time = 0;
     }
 
-    if (rol == true) {
-        balls[1].roll();
+    if (balls[0].isRolling()) {
+        
+        balls[0].roll();
+        //getProjectedPointOnLine(vec2 p, vec2 v1, vec2 v2)
+        getProjectedPointOnLine(vec2(balls[1].ballPosition.x, balls[1].ballPosition.z), vec2(balls[0].ballPosition.x, balls[0].ballPosition.z), vec2(balls[0].ballPosition.x + 0.5, balls[1].ballPosition.z + 0.5));
         window->redisplay();
     }
-    if (time++ > 25) {
-        rol = false;
-        time = 0;
-    }
+
 
 
 }
