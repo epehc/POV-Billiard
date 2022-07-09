@@ -26,6 +26,9 @@
 #include "Material.h"
 #include "TriangleMesh.hpp"
 #include "GLSL.hpp"
+#include<ctime>
+
+using namespace std;
 
  OpenGLConfiguration config(glm::uvec2(2, 1),
 		      OpenGLConfiguration::Profile::COMPATIBILITY,
@@ -60,11 +63,16 @@ public:
   // mouse pressed
   static void mousePressed(void);
 
+  //mouse Released
+  static void mouseReleased(void);
+
   // mouse dragged                                                                        
   static void mouseDragged(void);
 
   // keyboard callback for special keys 
   static void specialKey();
+
+  //static void keyReleased();
 
   static void idle();
     
@@ -133,7 +141,7 @@ public: class Ball {
 
 	  Ball(glm::vec3 pos) {
 		  ballPosition = pos;
-
+		  OGballPos = pos;
 	  }
 
 	  void load(std::string modelName) {
@@ -142,29 +150,38 @@ public: class Ball {
 
 	  glm::mat4 rotateMatrix = glm::mat4(1);
 	  glm::vec3 ballPosition;
+	  glm::vec3 OGballPos;
 	  float velocity;
 	  glm::vec2 direction;
 	  glm::vec3 axis;
 
 	  TriangleMesh mesh;
+	 
+	  bool isRolling() {
+		  return velocity > 0;
+	  }
 
 	  void push(glm::vec2 dir, float v) {
 		  velocity = v;
 		  direction = dir;
-		  axis = glm::vec3(-dir.y, 0, dir.x);
+		  axis = glm::vec3(dir.y, 0, -dir.x);
 
 	  }
 
 	  void roll() {
+		  
 		  if (velocity < 0) {
 			  return;
 		  }
 
-		  rotateMatrix = glm::rotate(rotateMatrix, velocity, axis);
+		  rotateMatrix = glm::rotate(rotateMatrix, glm::radians(1000.0f * velocity), axis);
 		  ballPosition += velocity * glm::vec3(direction.x, 0, direction.y);
-		  velocity -= 0.5;
+		  velocity -= 0.0001;
 
+	  }
 
+	  void resetBallPosition() {
+		  ballPosition = OGballPos;
 	  }
 
 	  void print(glm::mat4 modelMatrix) {
@@ -199,7 +216,7 @@ public: class Ball {
 			  }
 			  group++;
 		  }
-		  //
+		  
 		  phongShader.unbind();
 
 	  }
