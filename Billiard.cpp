@@ -404,7 +404,7 @@ void Billiard::mouseReleased(void) {
 
     if (keyboard->isActive(Keyboard::SHIFT)) {
         //cout << " released" << endl;
-
+        
         clock() - now;
         long click = clock() - now;
         float erg = (click * 0.0000234);
