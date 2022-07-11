@@ -132,12 +132,21 @@ private:
 	};
 
   static enum Transformation {
-	  SCALE, ROTATE, SHIFT_XY, SHIFT_Z
+	  SCALE, ROTATE, SHIFT_Z
   } drag;
 
 public: class Ball {
 
   public:
+
+	  glm::mat4 rotateMatrix = glm::mat4(1);
+	  glm::vec3 ballPosition;
+	  glm::vec3 OGballPos;
+	  float ballVelocity;
+	  glm::vec2 ballDirection;
+	  glm::vec3 ballAxis;
+
+	  TriangleMesh mesh;
 
 	  Ball(glm::vec3 pos) {
 		  ballPosition = pos;
@@ -148,36 +157,28 @@ public: class Ball {
 		  mesh.load(modelName);
 	  }
 
-	  glm::mat4 rotateMatrix = glm::mat4(1);
-	  glm::vec3 ballPosition;
-	  glm::vec3 OGballPos;
-	  float velocity;
-	  glm::vec2 direction;
-	  glm::vec3 axis;
-
-	  TriangleMesh mesh;
 	 
 	  bool isRolling() {
-		  return velocity > 0;
+		  return ballVelocity > 0;
 	  }
 
 	  void push(glm::vec2 dir, float v) {
-		  velocity = v;
-		  direction = dir;
-		  axis = glm::vec3(dir.y, 0, -dir.x);
+		  ballVelocity = v;
+		  ballDirection = dir;
+		  ballAxis = glm::vec3(dir.y, 0, -dir.x);
 
 	  }
 
 	  void roll() {
 		  
-		  if (velocity < 0) {
+		  if (ballVelocity < 0) {
 			  return;
 		  }
-
-		  rotateMatrix = glm::rotate(rotateMatrix, glm::radians(1000.0f * velocity), axis);
-		  ballPosition += velocity * glm::vec3(direction.x, 0, direction.y);
-		  velocity -= 0.0001;
-
+		  
+		  rotateMatrix = glm::rotate(rotateMatrix, glm::radians(1000.0f * ballVelocity), ballAxis);
+		  ballPosition += ballVelocity * glm::vec3(ballDirection.x, 0, ballDirection.y);
+		  ballVelocity -= 0.0001;	
+			  
 	  }
 
 	  void resetBallPosition() {

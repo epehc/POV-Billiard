@@ -39,6 +39,13 @@ static float radiantX = 5.0f;
 static float cameraPosY = 1.4348907f;
 static float cameraPosZ = 1.4348907f;
 
+//table corners
+static vec3 bottomLeftCorner = vec3(-0.718, 0.353, -0.28);
+static vec3 bottomRightCorner = vec3(-0.718, 0.353, 0.28);
+static vec3 upperLeftCorner = vec3(0.718, 0.353, -0.28);
+static vec3 upperRightCorner = vec3(0.718, 0.353, 0.28);
+
+
 // field of view
 GLfloat Billiard::fov= 45.0;
 GLfloat Billiard::cameraZ= 3;
@@ -55,18 +62,13 @@ vec4 Billiard::lightPosition= vec4(0, 3.0, 3.0, 1.0);
 
 TriangleMesh Billiard::table;
 
-Billiard::Ball Billiard::balls[] = {                                                        Billiard::Ball(vec3(-0.5 , 0.353, 0 )) ,
+Billiard::Ball Billiard::balls[] = {                                                        Billiard::Ball(vec3(-0.5, 0.353, 0.0)) ,
                                                                                             Billiard::Ball(vec3(0.35, 0.353, 0)), 
                                                                             Billiard::Ball(vec3(0.4, 0.353, -0.025)), Billiard::Ball(vec3(0.4, 0.353, 0.025)),
                                                                 Billiard::Ball(vec3(0.45, 0.353, -0.05)), Billiard::Ball(vec3(0.5, 0.353, -0.025)),  Billiard::Ball(vec3(0.45, 0.353, 0.05)),
                                                     Billiard::Ball(vec3(0.5, 0.353, -0.075)), Billiard::Ball(vec3(0.45, 0.353, 0)), Billiard::Ball(vec3(0.5, 0.353, 0.025)), Billiard::Ball(vec3(0.5, 0.353, 0.075)),
                                      Billiard::Ball(vec3(0.55, 0.353, -0.1)), Billiard::Ball(vec3(0.55, 0.353, -0.05)), Billiard::Ball(vec3(0.55, 0.353, 0)), Billiard::Ball(vec3(0.55, 0.353, 0.05)), Billiard::Ball(vec3(0.55, 0.353, 0.1)) };
 int Billiard::size = sizeof(balls) / sizeof(balls[0]);
-
-
-//Billiard::Ball Billiard::white(vec3(-0.5, 0.353, 0));
-//Billiard::Ball Billiard::b1(vec3(0.5, 0.353, 0));
-//Billiard::Ball Billiard::b2(vec3(0.55, 0.353, 0));
 
 glsl::Shader Billiard::diffuseShader;
 
@@ -85,14 +87,6 @@ LightSource Billiard::lightSource{
     vec4(1, 1, 1, 1),
     vec4(1, 1, 1, 1),
 };
-//Material
-//Material Billiard::material{
-//    "material",
-//    vec4(0.2, 0.2, 0.2, 1),
-//    vec4(0.3, 0.3, 0.3, 1),
-//    vec4(1, 1, 1, 1),
-//    30,
-//};
 
 
 Shader Billiard::phongShader;
@@ -104,51 +98,18 @@ Billiard::Transformation Billiard::drag;
 static mat4 rotationMatrix = mat4(1);
 vec3 Billiard::shift = vec3(0); // offset
 float Billiard::scaling = 1.0; // scale
-//.....................
 
-//Billiard::Ball Billiard::balls[16];
 
-//......................
-float perpDotProduct(vec2 v1, vec2 v2) {
-    return v1.x * v2.y - v1.y + v2.x;
+float perpDotProduct(vec3 a, vec3 b, vec3 c)
+{
+    return (a.x - c.x) * (b.z - c.z) - (a.z - c.z) * (b.x - c.x);
 }
 
-float dotProduct(vec2 v1, vec2 v2) {
-    return v1.x * v2.x + v1.y + v2.y;
+bool isPointOnLineviaPDP(vec3 v1, vec3 v2, vec3 p)
+{   
+    return abs(perpDotProduct(v1, v2, p)) < 0.05;
 }
 
-
-//bool isProjectedPointOnLineSegment(vec2 p, vec2 v1, vec2 v2) {
-//    //get dotProduct |e1| |e2|
-//    vec2 e1 = vec2(v2.x - v1.x, v2.y - v1.y);
-//    float rectArea = perpDotProduct(e1, e1);
-//
-//    vec2 e2 = vec2(p.x - v1.x, p.y - v1.y);
-//
-//    double val = perpDotProduct(e1, e2);
-//    return (val > 0 && val < rectArea);
-//
-//}
-//
-
-vec2 getProjectedPointOnLine(vec2 p, vec2 v1, vec2 v2) {
-    vec2 e1 = vec2(v2.x - v1.x, v2.y - v1.y);
-    vec2 e2 = vec2(p.x - v1.x, p.y - v1.y);
-
-    double dp = dotProduct(e1, e2);
-
-    //get length of vectors
-    double lenLineE1 = sqrt(e1.x * e1.x + e1.y * e1.y);
-    double lenLineE2 = sqrt(e2.x * e2.x + e2.y * e2.y);
-    double cos = dp / (lenLineE1 * lenLineE2);
-
-    // length of v1P'
-    double projLenOfLine = cos * lenLineE2;
-    vec2 result = vec2((int)(v1.x + (projLenOfLine * e1.x) / lenLineE1),
-        (int)(v1.y + (projLenOfLine * e1.y) / lenLineE1));
-    cout << "collision" << endl;
-    return result;
-}
 
 void Billiard::init(){
 
@@ -163,11 +124,6 @@ void Billiard::init(){
       cout << i << endl;
       balls[i].load("meshes/" + to_string(i) + ".obj");
   }
-  
-  //white.load("meshes/white.obj");
-  //b1.load("meshes/" + to_string(1) + ".obj");
-  //b2.load("meshes/2.obj");
-
 
 const std::string version= "#version 120\n";
 
@@ -236,7 +192,6 @@ void Billiard::computeProjectionMatrix(void){
 }
 
 // this is where the drawing happens
-//MER
 void Billiard::display(void){
   
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -278,18 +233,6 @@ void Billiard::display(void){
   for (int i = 0; i < size; i++) {
       balls[i].print(modelMatrix);
   }
-
-  //white.print(modelMatrix);
-  //b1.print(modelMatrix);
-  //b2.print(modelMatrix);
-
- 
-
-//.............
-
- //drawParameters();
-
-//.............
   
 
   // display back buffer
@@ -301,6 +244,7 @@ void Billiard::reset(void) {
     rotationMatrix = mat4(1); // current rotation of object                                                                                                                                 
     shift = vec3(0, 0, 0); // offset                                                                                                                                                    
     scaling = 1;
+
 
     for (int i = 0; i < size; i++) {
         balls[i].resetBallPosition();
@@ -368,27 +312,6 @@ case 'Z':
     window->redisplay();
     break;
 
-//case 'w':
-//        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,1));
-//        computeViewMatrix();
-//        window->redisplay();
-//        break;
-//case 's':
-//        modelMatrix *= glm::translate(rotationMatrix, vec3(0,0,-1));
-//        computeViewMatrix();
-//        window->redisplay();
-//        break;
-//case 'd':
-//        modelMatrix *= glm::translate(rotationMatrix, vec3(1,0,0));
-//        computeViewMatrix();
-//        window->redisplay();
-//        break;
-//case 'a':
-//        modelMatrix *= glm::translate(rotationMatrix,vec3(-1,0,0));
-//        computeViewMatrix();
-//        window->redisplay();
-//        break;
-
 case 'r':
     reset();
     window->redisplay();
@@ -402,13 +325,9 @@ case 'r':
 
 void Billiard::mouseReleased(void) {
 
-    if (keyboard->isActive(Keyboard::SHIFT)) {
-        //cout << " released" << endl;
-        
-        clock() - now;
+    if (keyboard->isActive(Keyboard::SHIFT)) {        
         long click = clock() - now;
         float erg = (click * 0.0000234);
-        cout << erg << endl;
         vec3 temp = vec3(balls[0].ballPosition - vec3(rotationMatrix * vec4(cameraPos, 1)));
         balls[0].push(vec2(-temp.x, temp.z), erg);
         window->redisplay();
@@ -445,11 +364,6 @@ void Billiard::mouseDragged(void) {
         if (length(v) == 0) break;
         rotationMatrix =  rotate(mat4(1), radians(180 * length(v)), normalize(vec3(v.y, v.x, 0))) * rotationMatrix; // left multiply
         break;
-    case SHIFT_XY:
-        shift.x += 3.3 * v.x;
-        shift.y -= 3.3 * v.y;
-        //std::cout << pos.x << " " << pos.y << endl;
-        break;
     case SHIFT_Z:
         shift.z += -10.0 * sign(dot(v, vec2(-1, 1))) * length(v);
         shift.z = clamp(shift.z, -25.0f, 2.0f);
@@ -476,10 +390,26 @@ void Billiard::idle() {
     }
 
     if (balls[0].isRolling()) {
-        
+
+
         balls[0].roll();
-        //getProjectedPointOnLine(vec2 p, vec2 v1, vec2 v2)
-        getProjectedPointOnLine(vec2(balls[1].ballPosition.x, balls[1].ballPosition.z), vec2(balls[0].ballPosition.x, balls[0].ballPosition.z), vec2(balls[0].ballPosition.x + 0.5, balls[1].ballPosition.z + 0.5));
+        
+        if (isPointOnLineviaPDP(bottomLeftCorner, bottomRightCorner, balls[0].ballPosition)) {
+            balls[0].push(vec2(-balls[0].ballDirection.x, balls[0].ballDirection.y), balls[0].ballVelocity);
+        }
+        if (isPointOnLineviaPDP(bottomLeftCorner, upperLeftCorner, balls[0].ballPosition)) {
+            balls[0].push(vec2(balls[0].ballDirection.x, -balls[0].ballDirection.y), balls[0].ballVelocity);
+
+        }
+        if (isPointOnLineviaPDP(upperLeftCorner, upperRightCorner, balls[0].ballPosition)) {
+            balls[0].push(vec2(-balls[0].ballDirection.x, balls[0].ballDirection.y), balls[0].ballVelocity);
+
+        }
+        if (isPointOnLineviaPDP(upperRightCorner, bottomRightCorner, balls[0].ballPosition)) {
+            balls[0].push(vec2(balls[0].ballDirection.x, -balls[0].ballDirection.y), balls[0].ballVelocity);
+
+        }
+
         window->redisplay();
     }
 
